@@ -1,12 +1,13 @@
 from aiogram import types
+from aiogram.fsm.context import FSMContext
 
 from modules.interaction.keyboards.keyboards_list import Keyboard
-from database.connection import requests_db
+from database.connection import db_manager
 from modules.passive.get_status import is_admin
 
 
-async def user_requests_window(msg: types.Message) -> None:
-    data = requests_db().get()
+async def user_requests_window(msg: types.Message, state: FSMContext = None) -> None:
+    data = db_manager.requests.get()
     requests = [req for req in data if req['userId'] == msg.from_user.id]
     keyboard = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb_admin if await is_admin(msg) else Keyboard.kb1)
     if len(requests) > 0:

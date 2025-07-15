@@ -9,7 +9,7 @@ from aiogram.fsm.state import StatesGroup, State
 from modules.passive.get_status import is_admin
 from modules.interaction.keyboards.keyboards_list import Keyboard
 from modules.interaction.start_window import start_window
-from database.connection import requests_db, questions_db
+from database.connection import db_manager
 
 
 class RequestWindow(StatesGroup):
@@ -17,14 +17,14 @@ class RequestWindow(StatesGroup):
 
 
 def limit_messages(user_id: int) -> bool:
-    requests = requests_db().get()
+    requests = db_manager.requests.get()
     now: datetime = datetime.now()
     today_requests = [req for req in requests if f"{now:%y.%m.%d}" in req['time']]
     user_requests = [user_req for user_req in today_requests if user_req['userId'] == user_id]
     return len(user_requests) >= 3
 
 
-async def request_window(msg: types.Message, state: FSMContext) -> None:
+async def request_window(msg: types.Message, state: FSMContext = None) -> None:
     if not limit_messages(msg.from_user.id) or await is_admin(msg):
         keyboard = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb3)
         await msg.bot.send_message(msg.chat.id, "Опишите Вашу проблему. Добавьте фото или видео, при необходимости.", reply_markup=keyboard)
@@ -34,7 +34,7 @@ async def request_window(msg: types.Message, state: FSMContext) -> None:
         await start_window(msg)
 
 
-async def exit(msg: types.Message, state: FSMContext) -> None:
+async def exit_state(msg: types.Message, state: FSMContext) -> None:
     await state.clear()
     await start_window(msg)
 
@@ -53,7 +53,7 @@ async def get_video(msg: types.Message, state: FSMContext) -> None:
 
 async def response(msg: types.Message, state: FSMContext) -> None:
     await state.update_data(request_text=msg.text.lower())
-    questions = questions_db().get()
+    questions = db_manager.questions.get()
     quests = [str(i['question']).lower() for i in questions]
     data = await state.get_data()
     if (data['request_text'] not in quests and not {
@@ -64,7 +64,7 @@ async def response(msg: types.Message, state: FSMContext) -> None:
     ):
         now: datetime = datetime.now()
         await msg.answer(text="Ваш запрос отправлен администратору. Ожидайте ответа.")
-        requests_db().add(msg.from_user.id, msg.from_user.username, data['request_text'], data['photo_id'] if 'photo_id' in data else '', data['video_id'] if 'video_id' in data else '', f"{now:%y.%m.%d.%H.%M}")
+        db_manager.requests.add(msg.from_user.id, msg.from_user.username, data['request_text'], data['photo_id'] if 'photo_id' in data else '', data['video_id'] if 'video_id' in data else '', f"{now:%y.%m.%d.%H.%M}")
         await state.clear()
         await start_window(msg)
     else:

@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId INTEGER NOT NULL,
-    username TEXT NOT NULL,
-    message TEXT NOT NULL,
-    time TEXT NOT NULL
-);

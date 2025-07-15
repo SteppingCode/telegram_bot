@@ -4,7 +4,7 @@ from sqlite3 import Error
 from os import listdir, path, getcwd, makedirs
 from shutil import rmtree
 
-from database.connection import logs_db, requests_db, questions_db
+from database.connection import db_manager
 
 def clear_logs() -> bool | None:
     if len(listdir(logs_dir)) >= 5:
@@ -15,7 +15,7 @@ def clear_logs() -> bool | None:
 
 logs_dir = path.join(getcwd(), 'logs')
 
-def on_start() -> None:
+def on_start() -> bool:
     clear_logs()
     makedirs(logs_dir, exist_ok=True)
     basicConfig(
@@ -25,21 +25,17 @@ def on_start() -> None:
         filemode='w'
     )
     info("Start")
+    return True
 
 
-def sql_start() -> None:
+def sql_start() -> bool:
     try:
-        logs_db()
+        if db_manager.logs and db_manager.requests and db_manager.questions:
+            info("CONNECTION TO DATABASES IS SUCCESSFUL")
+            return True
+        else:
+            info("CONNECTION TO DATABASES IS NOT SUCCESSFUL")
+            return False
     except Error as e:
-        info('LOGGING DATABASE CONNECTION STATE: -ERROR-')
         error(e)
-    try:
-        requests_db()
-    except Error as e:
-        info('REQUEST DATABASE CONNECTION STATE: -ERROR-')
-        error(e)
-    try:
-        questions_db()
-    except Error as e:
-        info('QUESTIONS DATABASE CONNECTION STATE: -ERROR-')
-        error(e)
+        return False

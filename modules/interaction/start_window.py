@@ -1,10 +1,11 @@
 from aiogram import types
+from aiogram.fsm.context import FSMContext
 
 from modules.interaction.keyboards.keyboards_list import Keyboard
 from modules.passive.get_status import is_admin
 
 
-async def start_window(msg: types.Message) -> None:
+async def start_window(msg: types.Message, state: FSMContext = None) -> None:
     keyboard = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb1)
     keyboard_admin = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb_admin)
     if not await is_admin(msg):

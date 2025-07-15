@@ -3,7 +3,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
 from modules.interaction.start_window import start_window
-from database.connection import questions_db
+from database.connection import db_manager
 from modules.interaction.keyboards.keyboards_list import Keyboard
 
 
@@ -11,8 +11,8 @@ class ChooseFaqWindow(StatesGroup):
     faq_question = State()
 
 
-async def faq_window(msg: types.Message, state: FSMContext) -> None:
-    questions = questions_db().get()
+async def faq_window(msg: types.Message, state: FSMContext = None) -> None:
+    questions = db_manager.questions.get()
     keyboard = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb2)
     await msg.bot.send_message(msg.from_user.id,
                                """В данном разделе представлены часто задаваемые вопросы.\n{}\nВам помог этот раздел?""".format('\n'.join(list(f"{i} - {questions[i - 1]['question']}: {questions[i - 1]['answer']}" for i in range(1, len(questions)+1)))) if len(questions) > 0 else "Тут ничего нет",

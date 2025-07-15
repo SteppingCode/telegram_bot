@@ -1,36 +1,26 @@
 from os import path
 from sqlite3 import connect, Connection, Row
-from database.for_requests import DatabaseRequests
-from database.for_logs import DatabaseLogs
-from database.for_questions import DatabaseQuestions
+from database.base import DatabaseLogs, DatabaseRequests, DatabaseQuestions
 
+class DatabaseManager:
+    def __init__(self):
+        self.db = self.connect_db()
+        self.logs = DatabaseLogs(self.db)
+        self.requests = DatabaseRequests(self.db)
+        self.questions = DatabaseQuestions(self.db)
 
-def connect_db(db_name: str) -> Connection:
-    """
-    Connect to the database
-    :return connection: Connection to the database
-    """
-    conn = connect(path.join("extra", f"{db_name}.db"))
-    conn.row_factory = Row
-    cur = conn.cursor()
-    with open(path.join("database", f"{db_name}.sql"), 'r') as scheme:
-        cur.execute(scheme.read())
-    return conn
+    @staticmethod
+    def connect_db() -> Connection:
+        """
+        Connect to the database and set up the schema if necessary.
+        :return: Connection to the database
+        """
+        conn = connect(path.join("database", "database.db"))
+        conn.row_factory = Row
+        cur = conn.cursor()
+        with open(path.join("database", "script.sql"), 'r') as scheme:
+            cur.executescript(scheme.read())
+        return conn
 
-
-def logs_db() -> DatabaseLogs:
-    db = connect_db(db_name='logging')
-    database = DatabaseLogs(db)
-    return database
-
-
-def requests_db() -> DatabaseRequests:
-    db = connect_db(db_name='requests')
-    database = DatabaseRequests(db)
-    return database
-
-
-def questions_db() -> DatabaseQuestions:
-    db = connect_db(db_name='questions')
-    database = DatabaseQuestions(db)
-    return database
+# Single instance of DatabaseManager
+db_manager = DatabaseManager()
