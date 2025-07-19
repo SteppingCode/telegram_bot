@@ -1,5 +1,3 @@
-from json import load
-from string import punctuation
 from datetime import datetime
 
 from aiogram import types
@@ -9,6 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 from modules.passive.get_status import is_admin
 from modules.interaction.keyboards.keyboards_list import Keyboard
 from modules.interaction.start_window import start_window
+from modules.interaction.utils import obscene_check
 from database.connection import db_manager
 
 
@@ -56,12 +55,7 @@ async def response(msg: types.Message, state: FSMContext) -> None:
     questions = db_manager.questions.get()
     quests = [str(i['question']).lower() for i in questions]
     data = await state.get_data()
-    if (data['request_text'] not in quests and not {
-        i.lower().translate(str.maketrans('', '', punctuation)) for i
-        in
-        str(data['request_text']).split(' ')}.intersection(
-        set(load(open('extra/cenz.json')))) != set()
-    ):
+    if data['request_text'] not in quests and not await obscene_check(msg.text):
         now: datetime = datetime.now()
         await msg.answer(text="Ваш запрос отправлен администратору. Ожидайте ответа.")
         db_manager.requests.add(msg.from_user.id, msg.from_user.username, data['request_text'], data['photo_id'] if 'photo_id' in data else '', data['video_id'] if 'video_id' in data else '', f"{now:%y.%m.%d.%H.%M}")

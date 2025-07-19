@@ -1,8 +1,8 @@
 from aiogram import types
-from aiogram.filters import Command
+# from aiogram.filters import Command
 
 from modules.interaction.keyboards.keyboards_list import Keyboard
-from extra.create_bot import dp
+# from extra.create_bot import dp
 
 
 async def help_window(msg: types.Message) -> None:

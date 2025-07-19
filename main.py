@@ -3,7 +3,6 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware, F
 from aiogram.filters import Command
 from aiogram.types import TelegramObject
-import inspect
 
 from database.connection import db_manager
 from extra.create_bot import dp, bot
@@ -23,7 +22,7 @@ from modules.interaction import (
 class SomeMiddleware(BaseMiddleware):
     async def __call__(
             self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            _handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
             event: TelegramObject,
             data: Dict[str, Any]
     ) -> Any:
@@ -32,10 +31,9 @@ class SomeMiddleware(BaseMiddleware):
                             event.from_user.username,
                             event.text,
                             event.date)
-        result = await handler(event, data)
+        result = await _handler(event, data)
         return result
 
-# Command to handler mapping with fixed command names
 COMMAND_HANDLERS = [
     {
         "handler": add_faq.add_faq,
@@ -117,35 +115,29 @@ COMMAND_HANDLERS = [
 ]
 
 if __name__ == "__main__":
-    # Initialize bot and database
     if not (on_start() and sql_start()):
         raise RuntimeError("Failed to initialize bot or database")
 
-    # Register all command handlers
     for i, handler_config in enumerate(COMMAND_HANDLERS):
         handler = handler_config["handler"]
         commands = handler_config.get("commands")
         state = handler_config.get("state")
         filters = handler_config.get("filters")
 
-        # Validate handler
         if handler is None or not callable(handler):
-            print(f"Skipping invalid handler {i+1}: {handler_config}")
+            info(f"Skipping invalid handler {i+1}: {handler_config}")
             continue
 
-        # Register handler
         try:
             if commands:
-                # Register Command handlers without state to avoid error
                 dp.message.register(handler, Command(*commands))
             elif filters:
                 dp.message.register(handler, filters, state)
             else:
                 dp.message.register(handler, state)
-            print(f"Successfully registered handler {i+1}")
+            info(f"Successfully registered handler {i+1}")
         except Exception as e:
-            print(f"Error registering handler {i+1}: {e}")
+            info(f"Error registering handler {i+1}: {e}")
 
-    # Register middleware
     dp.message.middleware.register(SomeMiddleware())
     dp.run_polling(bot, skip_updates=True)
