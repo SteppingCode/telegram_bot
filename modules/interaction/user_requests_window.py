@@ -8,6 +8,7 @@ from database.connection import db_manager
 from modules.passive.get_status import is_admin
 from modules.interaction.utils import send_media_if_exists
 
+
 async def user_requests_window(msg: types.Message, state: FSMContext = None) -> None:
     data = db_manager.requests.get()
     requests = [req for req in data if req['userId'] == msg.from_user.id]

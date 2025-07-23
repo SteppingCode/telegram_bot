@@ -7,6 +7,7 @@ _buttons = {
     "faq": KeyboardButton(text="/faq"),
     "submit_request": KeyboardButton(text="/submit_request"),
     "my_requests": KeyboardButton(text="/my_requests"),
+    "help": KeyboardButton(text="/help"),
     "back": KeyboardButton(text="/back"),
     "yes": KeyboardButton(text="Да"),
     "no": KeyboardButton(text="Нет"),
@@ -19,12 +20,12 @@ _buttons = {
 }
 
 _layouts = {
-    "kb1": [["faq"], ["submit_request"], ["my_requests"]],
+    "kb1": [["faq"], ["submit_request"], ["my_requests"], ["help"]],
     "kb2": [["yes"], ["no"], ["back"]],
     "kb_answer": [["show"], ["hide"]],
     "kb3": [["exit"]],
     "kb4": [["back"], ["submit_request"]],
-    "kb_admin": [["faq"], ["submit_request"], ["my_requests"], ["admin"]],
+    "kb_admin": [["faq"], ["submit_request"], ["my_requests"], ["help"], ["admin"]],
     "kb_admin_panel": [["list_requests"], ["add_faq"], ["back"]],
 }
 
@@ -36,6 +37,7 @@ kb3 = [[_buttons[button_key] for button_key in row] for row in _layouts["kb3"]]
 kb4 = [[_buttons[button_key] for button_key in row] for row in _layouts["kb4"]]
 kb_admin = [[_buttons[button_key] for button_key in row] for row in _layouts["kb_admin"]]
 kb_admin_panel = [[_buttons[button_key] for button_key in row] for row in _layouts["kb_admin_panel"]]
+
 
 @dataclass
 class Keyboard:

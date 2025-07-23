@@ -1,9 +1,11 @@
 from sqlite3 import Error
 
+
 class BaseDatabase:
     def __init__(self, db) -> None:
         self.db = db
         self.cur = db.cursor()
+
 
 class Table(BaseDatabase):
     def __init__(self, db, table_name, columns):
@@ -67,12 +69,14 @@ class Table(BaseDatabase):
             print(e)
             return False
 
+
 class DatabaseLogs(Table):
     def __init__(self, db):
         super().__init__(db, "log", ["userid", "username", "message", "time"])
 
     def add(self, userid: int, username: str, message: str, time: int) -> bool:
         return self.insert((userid, username, message, time))
+
 
 class DatabaseQuestions(Table):
     def __init__(self, db):
@@ -89,9 +93,11 @@ class DatabaseQuestions(Table):
             return super().select()
         return super().select("id = ?", (question_id,))
 
+
 class DatabaseRequests(Table):
     def __init__(self, db):
-        super().__init__(db, "requests_table", ["userid", "username", "message", "photo_id", "video_id", "time", "answer", "answer_time"])
+        super().__init__(db, "requests_table",
+                         ["userid", "username", "message", "photo_id", "video_id", "time", "answer", "answer_time"])
 
     def add(self, userid: int, username: str, message: str, photo_id: str, video_id: str, time: str) -> bool:
         return self.insert((userid, username, message, photo_id, video_id, time, '', ''))

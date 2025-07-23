@@ -2,6 +2,7 @@ from os import path
 from sqlite3 import connect, Connection, Row
 from database.base import DatabaseLogs, DatabaseRequests, DatabaseQuestions
 
+
 class DatabaseManager:
     def __init__(self):
         self.db = self.connect_db()
@@ -21,6 +22,7 @@ class DatabaseManager:
         with open(path.join("database", "script.sql"), 'r') as scheme:
             cur.executescript(scheme.read())
         return conn
+
 
 # Single instance of DatabaseManager
 db_manager = DatabaseManager()

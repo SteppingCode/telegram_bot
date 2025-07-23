@@ -16,8 +16,10 @@ from modules.interaction import (
     scrolling_list,
     show_answer_window,
     start_window,
-    user_requests_window
+    user_requests_window,
+    help_window
 )
+
 
 class SomeMiddleware(BaseMiddleware):
     async def __call__(
@@ -34,7 +36,12 @@ class SomeMiddleware(BaseMiddleware):
         result = await _handler(event, data)
         return result
 
+
 COMMAND_HANDLERS = [
+    {
+        "handler": start_window.start_window,
+        "commands": ["start", "back"]
+    },
     {
         "handler": add_faq.add_faq,
         "commands": ["add_faq"]
@@ -105,12 +112,12 @@ COMMAND_HANDLERS = [
         "commands": ["hide"]
     },
     {
-        "handler": start_window.start_window,
-        "commands": ["start", "back"]
-    },
-    {
         "handler": user_requests_window.user_requests_window,
         "commands": ["my_requests"]
+    },
+    {
+        "handler": help_window.help_window,
+        "commands": ["help"]
     }
 ]
 
@@ -125,7 +132,7 @@ if __name__ == "__main__":
         filters = handler_config.get("filters")
 
         if handler is None or not callable(handler):
-            info(f"Skipping invalid handler {i+1}: {handler_config}")
+            info(f"Skipping invalid handler {i + 1}: {handler_config}")
             continue
 
         try:
@@ -135,9 +142,9 @@ if __name__ == "__main__":
                 dp.message.register(handler, filters, state)
             else:
                 dp.message.register(handler, state)
-            info(f"Successfully registered handler {i+1}")
+            info(f"Successfully registered handler {i + 1}")
         except Exception as e:
-            info(f"Error registering handler {i+1}: {e}")
+            info(f"Error registering handler {i + 1}: {e}")
 
     dp.message.middleware.register(SomeMiddleware())
     dp.run_polling(bot, skip_updates=True)

@@ -6,6 +6,7 @@ from shutil import rmtree
 
 from database.connection import db_manager
 
+
 def clear_logs() -> bool | None:
     if len(listdir(logs_dir)) >= 5:
         rmtree(logs_dir)
@@ -13,14 +14,17 @@ def clear_logs() -> bool | None:
     else:
         return None
 
+
 logs_dir = path.join(getcwd(), 'logs')
+
 
 def on_start() -> bool:
     clear_logs()
     makedirs(logs_dir, exist_ok=True)
     basicConfig(
         level=INFO,
-        filename=r'logs/{}.log'.format(str(datetime.now().replace(microsecond=0)).translate(str.maketrans({' ': '_', ':': '_'}))),
+        filename=r'logs/{}.log'.format(
+            str(datetime.now().replace(microsecond=0)).translate(str.maketrans({' ': '_', ':': '_'}))),
         encoding='utf-8',
         filemode='w'
     )

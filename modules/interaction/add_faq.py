@@ -11,9 +11,11 @@ from database.connection import db_manager
 
 from extra.create_bot import dp
 
+
 class AddFaq(StatesGroup):
     getting_faq = State()
     getting_answer = State()
+
 
 def _build_inline_keyboard(buttons: list[tuple[str, str]]) -> types.InlineKeyboardMarkup:
     """Build an inline keyboard with the given buttons (text, callback_data pairs)."""
@@ -23,6 +25,7 @@ def _build_inline_keyboard(buttons: list[tuple[str, str]]) -> types.InlineKeyboa
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
+
 def _build_faq_keyboard(questions: list) -> types.InlineKeyboardMarkup:
     """Build an inline keyboard for FAQ questions, with an exit button."""
     if not questions:
@@ -30,6 +33,7 @@ def _build_faq_keyboard(questions: list) -> types.InlineKeyboardMarkup:
     buttons = [(f"{i} - {q[1]}: {q[2]}", f"delete_question:{i}") for i, q in enumerate(questions, 1)]
     buttons.append(("Выйти", "exit:click"))
     return _build_inline_keyboard(buttons)
+
 
 async def add_faq(msg: types.Message, state: FSMContext = None) -> None:
     if await is_admin(msg):
@@ -43,9 +47,11 @@ async def add_faq(msg: types.Message, state: FSMContext = None) -> None:
     else:
         await msg.bot.send_message(msg.chat.id, 'Вы не сотрудник БМЗ!')
 
+
 async def add_faq_callback(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.bot.send_message(call.message.chat.id, 'Пришлите вопрос')
     await state.set_state(AddFaq.getting_faq)
+
 
 async def exit_state(msg: types.Message, state: FSMContext) -> None:
     keyboard = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb_admin_panel)
@@ -53,11 +59,13 @@ async def exit_state(msg: types.Message, state: FSMContext) -> None:
     await msg.bot.send_message(msg.chat.id, 'Как пожелаете', reply_markup=keyboard)
     await start_window(msg)
 
+
 async def get_faq(msg: types.Message, state: FSMContext) -> None:
     quest = msg.text
     await state.update_data(question=quest)
     await state.set_state(AddFaq.getting_answer)
     await msg.bot.send_message(msg.chat.id, 'Теперь ответ')
+
 
 async def get_answer(msg: types.Message, state: FSMContext) -> None:
     answer = msg.text
@@ -67,6 +75,7 @@ async def get_answer(msg: types.Message, state: FSMContext) -> None:
     await state.clear()
     await msg.bot.send_message(msg.chat.id, 'Список типовых вопросов был обновлен!')
     await add_faq(msg)
+
 
 async def delete_faq_callback(call: CallbackQuery) -> None:
     questions = db_manager.questions.get()
@@ -80,6 +89,7 @@ async def delete_faq_callback(call: CallbackQuery) -> None:
     else:
         await call.message.bot.send_message(call.message.chat.id, 'Список пуст')
 
+
 async def delete_question_callback(call: CallbackQuery) -> None:
     question_id = db_manager.questions.get()[int(call.data.split(':')[1]) - 1]['id']
     deleted = db_manager.questions.delete(question_id)
@@ -91,9 +101,11 @@ async def delete_question_callback(call: CallbackQuery) -> None:
         'Список типовых вопросов был обновлен!' if deleted else 'Ошибка'
     )
 
+
 async def exit_faq_callback(call: CallbackQuery) -> None:
     await call.message.delete()
     await call.message.bot.send_message(call.message.chat.id, 'Ок')
+
 
 dp.callback_query.register(add_faq_callback, F.data.startswith('add_faq:click'))
 dp.callback_query.register(delete_faq_callback, F.data.startswith('delete_faq:click'))

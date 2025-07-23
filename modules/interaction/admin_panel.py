@@ -10,4 +10,4 @@ async def admin_panel(msg: types.Message, state: FSMContext = None) -> None:
         keyboard = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb_admin_panel)
         await msg.bot.send_message(msg.chat.id, 'Админ панель', reply_markup=keyboard)
     else:
-        await msg.bot.send_message(msg.chat.id, 'Вы не сотрудник БМЗ!')
+        pass

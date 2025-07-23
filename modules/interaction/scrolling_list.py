@@ -12,8 +12,10 @@ from modules.passive.get_status import is_admin
 from database.connection import db_manager
 from extra.create_bot import dp
 
+
 class AnswerRequest(StatesGroup):
     get_message = State()
+
 
 class RequestPaginator:
     """Helper class to manage pagination and keyboard creation for requests."""
@@ -23,7 +25,8 @@ class RequestPaginator:
         self.current_page = 1
         self.max_pages = 1
 
-    def _get_unanswered_requests(self) -> List[Dict]:
+    @staticmethod
+    def _get_unanswered_requests() -> List[Dict]:
         """Fetch unanswered requests from the database."""
         data = db_manager.requests.get()
         return [req for req in data if len(req['answer']) == 0]
@@ -42,7 +45,8 @@ class RequestPaginator:
             buttons.append((text, f"info:{req['id']}"))
         return buttons
 
-    def build_keyboard(self, requests: List[Dict], current_id: Optional[int] = None, include_actions: bool = False) -> types.InlineKeyboardMarkup:
+    def build_keyboard(self, requests: List[Dict], current_id: Optional[int] = None,
+                       include_actions: bool = False) -> types.InlineKeyboardMarkup:
         """Build an inline keyboard for the request list with optional navigation and action buttons."""
         keyboard = InlineKeyboardBuilder()
         # Add request buttons
@@ -65,7 +69,8 @@ class RequestPaginator:
             keyboard.button(text=text, callback_data=callback_data)
         # Adjust layout dynamically
         request_count = min(self.ITEMS_PER_PAGE, len(requests) - self.ITEMS_PER_PAGE * (self.current_page - 1))
-        adjust = [1] * request_count + ([3] if 1 < self.current_page < self.max_pages else [2]) + ([2] if include_actions else [1])
+        adjust = [1] * request_count + ([3] if 1 < self.current_page < self.max_pages else [2]) + (
+            [2] if include_actions else [1])
         keyboard.adjust(*adjust)
         return keyboard.as_markup()
 
@@ -83,8 +88,10 @@ class RequestPaginator:
         elif direction == "previous" and self.current_page > 1:
             self.current_page -= 1
 
+
 # Singleton paginator instance
 paginator = RequestPaginator()
+
 
 async def list_cmd(msg: types.Message, state: FSMContext = None) -> None:
     if not await is_admin(msg):
@@ -92,8 +99,10 @@ async def list_cmd(msg: types.Message, state: FSMContext = None) -> None:
         return
     requests = await paginator.list_requests(msg)
     text = 'Список' if requests else 'У вас нету заявок'
-    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
+    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(
+        text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
     await msg.bot.send_message(chat_id=msg.chat.id, text=text, reply_markup=keyboard)
+
 
 async def response(call: CallbackQuery) -> None:
     requests = paginator._get_unanswered_requests()
@@ -112,17 +121,22 @@ async def response(call: CallbackQuery) -> None:
     if single_request[3] and (single_request[4] or single_request[5]):
         await call.message.bot.send_message(call.message.chat.id, f"{single_request[3]} : {single_request[6]}")
 
+
 async def next_click(call: CallbackQuery) -> None:
     requests = paginator._get_unanswered_requests()
     paginator.update_page("next")
-    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
+    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(
+        text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
     await call.message.edit_text(text=call.message.text, reply_markup=keyboard)
+
 
 async def previous_click(call: CallbackQuery) -> None:
     requests = paginator._get_unanswered_requests()
     paginator.update_page("previous")
-    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
+    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(
+        text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
     await call.message.edit_text(text=call.message.text, reply_markup=keyboard)
+
 
 async def delete_request(call: CallbackQuery) -> None:
     request_id = int(call.data.split(":")[1])
@@ -131,8 +145,10 @@ async def delete_request(call: CallbackQuery) -> None:
     paginator._calculate_pagination(requests)
     if paginator.current_page > paginator.max_pages:
         paginator.current_page = paginator.max_pages
-    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
+    keyboard = paginator.build_keyboard(requests) if requests else InlineKeyboardBuilder().button(
+        text="У вас нету заявок", callback_data="requests:empty").adjust(1).as_markup()
     await call.message.edit_text(text='Список', reply_markup=keyboard)
+
 
 async def answer_handler(call: CallbackQuery, state: FSMContext) -> None:
     keyboard = types.ReplyKeyboardMarkup(keyboard=Keyboard.kb_admin_panel)
@@ -141,9 +157,11 @@ async def answer_handler(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.bot.send_message(call.message.chat.id, "Напишите ответ на сообщение", reply_markup=keyboard)
     await state.set_state(AnswerRequest.get_message)
 
+
 async def exit_state(call: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await call.message.bot.send_message(call.message.chat.id, "Ок")
+
 
 async def answer_message(msg: types.Message, state: FSMContext) -> None:
     data = await state.get_data()
@@ -156,8 +174,10 @@ async def answer_message(msg: types.Message, state: FSMContext) -> None:
     await msg.bot.send_message(request[1], "Вам ответили на сообщение", reply_markup=keyboard)
     await state.clear()
 
+
 async def exit_callback(call: CallbackQuery) -> None:
     await call.message.delete()
+
 
 dp.callback_query.register(response, F.data.startswith('info:'))
 dp.callback_query.register(next_click, F.data.startswith('next:click'))

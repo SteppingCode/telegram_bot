@@ -7,6 +7,7 @@ from modules.interaction.start_window import start_window
 from database.connection import db_manager
 from modules.interaction.utils import send_media_if_exists
 
+
 async def show_answer_window(msg: types.Message, state: FSMContext = None):
     data = db_manager.requests.get()
     answered_requests = [req for req in data if req['userId'] == msg.from_user.id and req['answer']]
@@ -22,6 +23,8 @@ async def show_answer_window(msg: types.Message, state: FSMContext = None):
         )
         await send_media_if_exists(msg.bot, msg.chat.id, req)
 
+
 async def hide_answer_window(msg: types.Message, state: FSMContext = None):
-    await msg.bot.send_message(msg.chat.id, 'Хорошо, если передумаете, то ваши заявки можно посмотреть командой /my_requests')
+    await msg.bot.send_message(msg.chat.id,
+                               'Хорошо, если передумаете, то ваши заявки можно посмотреть командой /my_requests')
     await start_window(msg)
